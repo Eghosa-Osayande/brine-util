@@ -137,9 +137,9 @@ def sign(privateKey, msgHash):
         if msg_len > starkEc.size:
             msg = msg >> (msg_len-starkEc.size)
         if (truncOnly==True and msg>=starkEc.order):
-            return msg-starkEc.order;
+            return msg-starkEc.order
         else:
-            return msg;
+            return msg
         
 
     def _generateRandomFromKeyAndMsg(key,msg):
@@ -157,16 +157,19 @@ def sign(privateKey, msgHash):
 
     ns1 = starkEc.order-1
     
-    for i in range(10):
+    while True:
         
-        randomK = _truncateToN(gen.generate(bytex) )
-        
+        randomK = _truncateToN(gen.generate(bytex),truncOnly=True)
         
         if(randomK <= 1 or randomK >= ns1):
             continue
         msgSignature=ECDSA().sign_k(msg=msgBytes,pv_key=privateKey,k=randomK)
 
         r, s = decode_sig(msgSignature)
+        if r==0 or s==0:
+            continue
+
+        # TODO
         # w = s.invm(starkEc.n)
         # Verify signature has valid length.
         # assertInRange(r, oneBn, maxEcdsaVal, 'r')
@@ -261,7 +264,10 @@ class HMAC_DRBG (object):
 		return temp[:num_bytes]
 
 if __name__ == '__main__':
-    ethPrivateKey = '11'*32 #replace with privatekey
+    try:
+        from key import ethPrivateKey
+    except:
+        ethPrivateKey = '11'*32 #replace with privatekey
 
     orderNonce = {
         "nonce": 27008321,
